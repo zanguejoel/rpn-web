@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './fonts.css';
+
+/* Expose the tokens to Tailwind utilities (bg-surface, text-ink, rounded-card…). */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-pale: var(--accent-pale);
+  --color-flag-green: var(--rpn-green);
+  --color-flag-red: var(--rpn-red);
+  --color-flag-yellow: var(--rpn-yellow);
+  --color-confirmed-bg: var(--status-confirmed-bg);
+  --color-confirmed-ink: var(--status-confirmed-ink);
+  --color-pending-bg: var(--status-pending-bg);
+  --color-pending-ink: var(--status-pending-ink);
+  --color-urgent-bg: var(--status-urgent-bg);
+  --color-urgent-ink: var(--status-urgent-ink);
+
+  --radius-input: var(--radius-input);
+  --radius-button: var(--radius-button);
+  --radius-card: var(--radius-card);
+
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* The host paints its own ground behind the app; without an explicit
+       background the page borrows the wrong theme's surface. */
+    background-color: var(--surface-sunken);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  /* Money and dates line up in columns across every table in the admin space. */
+  .tabular, td.numeric, th.numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

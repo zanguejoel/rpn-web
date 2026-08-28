@@ -1,0 +1,16 @@
+/* Self-hosted via @fontsource — deliberately NOT the Google Fonts CDN.
+   A CDN leaks every visitor's IP to a third party, which sits badly with the
+   Loi 25 posture of a system that stores banking documents. It is also faster:
+   the files ship in our own bundle instead of costing an extra DNS + TLS hop.
+   Latin subset only; the product is French (fr-CA). */
+
+/* Nunito — body text. 400/600/700 cover the mobile app's body scale. */
+@import '@fontsource/nunito/latin-400.css';
+@import '@fontsource/nunito/latin-600.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+
+/* Poppins — display/headings, used with restraint. */
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
+@import '@fontsource/poppins/latin-700.css';

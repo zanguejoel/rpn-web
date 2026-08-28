@@ -1,0 +1,117 @@
+/* Design tokens — ported from rpn-mobile/theme/tokens.ts.
+   Single source of truth for the RPN visual identity across mobile and web.
+   Semantics are fixed and must not be reinvented per screen:
+     green  = confirmed / primary action
+     yellow = pending / awaiting validation
+     red    = urgent / destructive
+   If a value changes here it must change in the mobile tokens file too. */
+
+:root {
+  /* --- Brand (Cameroonian flag), identical values to mobile --- */
+  --rpn-green: #007a5e;
+  --rpn-green-light: #009e72;
+  --rpn-green-pale: #e0f5ef;
+  --rpn-red: #ce1126;
+  --rpn-red-light: #e53935;
+  --rpn-red-pale: #fdecea;
+  --rpn-yellow: #fcd116;
+  --rpn-yellow-pale: #fffbea;
+  /* #FCD116 on white is ~1.5:1 — unusable for text. This is the accessible
+     partner already used by the mobile Badge component. Pure yellow is for
+     fills and borders only, never glyphs. */
+  --rpn-yellow-ink: #8a6d00;
+
+  /* --- Neutrals: warmed a few degrees toward the brand green rather than
+         pure grey, so surfaces read as chosen rather than inherited. --- */
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f8f6;
+  --surface-hover: #eef4f1;
+  --border: #dfe7e3;
+  --border-strong: #c3d1cb;
+  --ink: #14201c;
+  --ink-muted: #5a6b65;
+  --ink-faint: #84968f;
+
+  /* --- Semantic aliases: components reference these, never raw brand hues --- */
+  --accent: var(--rpn-green);
+  --accent-hover: #006b52;
+  --accent-contrast: #ffffff;
+  --accent-pale: var(--rpn-green-pale);
+
+  --status-confirmed-bg: var(--rpn-green-pale);
+  --status-confirmed-ink: #005f49;
+  --status-pending-bg: var(--rpn-yellow-pale);
+  --status-pending-ink: var(--rpn-yellow-ink);
+  --status-urgent-bg: var(--rpn-red-pale);
+  --status-urgent-ink: #a50e1f;
+
+  --focus-ring: #007a5e;
+
+  /* --- Radii / shadow, mirroring mobile's scale --- */
+  --radius-input: 12px;
+  --radius-button: 14px;
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --shadow-card: 0 4px 20px rgb(0 0 0 / 0.08);
+  --shadow-raised: 0 8px 28px rgb(0 0 0 / 0.12);
+}
+
+/* Dark: unstamped documents follow the OS, but an explicit light choice wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: #101917;
+    --surface-raised: #16211e;
+    --surface-sunken: #0b1211;
+    --surface-hover: #1d2b27;
+    --border: #26352f;
+    --border-strong: #384a43;
+    --ink: #e8f0ec;
+    --ink-muted: #9fb0a9;
+    --ink-faint: #71837c;
+
+    /* The mid green goes muddy on a dark ground; lift it so the accent keeps
+       working as an action colour instead of receding into the surface. */
+    --accent: #22b98a;
+    --accent-hover: #2ecf9c;
+    --accent-contrast: #06231b;
+    --accent-pale: #12332a;
+
+    --status-confirmed-bg: #12332a;
+    --status-confirmed-ink: #5fd9ae;
+    --status-pending-bg: #322a08;
+    --status-pending-ink: #f0cf5a;
+    --status-urgent-bg: #3a1517;
+    --status-urgent-ink: #ff8a8a;
+
+    --focus-ring: #2ecf9c;
+    --shadow-card: 0 4px 20px rgb(0 0 0 / 0.5);
+    --shadow-raised: 0 8px 28px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Explicit dark choice wins over a light OS. */
+:root[data-theme='dark'] {
+  --surface: #101917;
+  --surface-raised: #16211e;
+  --surface-sunken: #0b1211;
+  --surface-hover: #1d2b27;
+  --border: #26352f;
+  --border-strong: #384a43;
+  --ink: #e8f0ec;
+  --ink-muted: #9fb0a9;
+  --ink-faint: #71837c;
+  --accent: #22b98a;
+  --accent-hover: #2ecf9c;
+  --accent-contrast: #06231b;
+  --accent-pale: #12332a;
+  --status-confirmed-bg: #12332a;
+  --status-confirmed-ink: #5fd9ae;
+  --status-pending-bg: #322a08;
+  --status-pending-ink: #f0cf5a;
+  --status-urgent-bg: #3a1517;
+  --status-urgent-ink: #ff8a8a;
+  --focus-ring: #2ecf9c;
+  --shadow-card: 0 4px 20px rgb(0 0 0 / 0.5);
+  --shadow-raised: 0 8px 28px rgb(0 0 0 / 0.6);
+}

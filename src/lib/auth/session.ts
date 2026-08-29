@@ -1,50 +1,37 @@
 /* Where the browser keeps its credentials.
  *
- * THE RULE: no token ever touches localStorage or sessionStorage. This app puts
- * other members' bank screenshots on screen; a single XSS would otherwise hand an
- * attacker a long-lived refresh token. Web is not mobile — the mobile app can use
- * the OS Keychain (expo-secure-store), the browser has no equivalent.
+ * THE RULE: no token ever touches localStorage or sessionStorage. Both are readable by any script,
+ * and this application renders other members' banking documents — one XSS would otherwise hand an
+ * attacker a 30-day refresh credential.
  *
- * CURRENT STATE (interim): both tokens live in a module-level variable, so they
- * die with the tab. That is safe but means a page reload signs you out.
+ * How it works now:
+ *   - the refresh token lives in an httpOnly + Secure + SameSite=Strict cookie set by the server
+ *     (POST /auth/session). This module cannot read it, and neither can an attacker's script;
+ *   - the access token is held here, in memory only, and dies with the tab;
+ *   - a page reload therefore has no stored token, but CAN recover the session: the browser sends
+ *     the cookie to /auth/session/refresh automatically, which returns a fresh access token.
  *
- * TARGET (§9 of rpn-web-project-plan.md): the refresh token moves into an
- * httpOnly + Secure + SameSite=Strict cookie that JavaScript cannot read, set by
- * a new POST /auth/session endpoint on rpn-backend. The access token stays in
- * memory exactly as it is now, and reload-survival comes from a silent refresh
- * against that cookie at boot.
- *
- * Everything outside this module goes through these functions, so that migration
- * changes this file and nothing else.
+ * The native mobile app does the opposite — OS keychain, JSON token endpoints — because a browser
+ * has no keychain and a phone has no cookie jar worth trusting.
  */
 
-interface SessionTokens {
-  accessToken: string;
-  refreshToken: string;
-}
+let accessToken: string | null = null;
 
-let tokens: SessionTokens | null = null;
-
-/** Subscribers are notified when the session is established or torn down. */
 type Listener = (hasSession: boolean) => void;
 const listeners = new Set<Listener>();
 
 export const session = {
   getAccessToken(): string | null {
-    return tokens?.accessToken ?? null;
+    return accessToken;
   },
 
-  getRefreshToken(): string | null {
-    return tokens?.refreshToken ?? null;
-  },
-
-  set(next: SessionTokens): void {
-    tokens = next;
+  set(token: string): void {
+    accessToken = token;
     listeners.forEach((listener) => listener(true));
   },
 
   clear(): void {
-    tokens = null;
+    accessToken = null;
     listeners.forEach((listener) => listener(false));
   },
 
@@ -54,10 +41,10 @@ export const session = {
   },
 
   /**
-   * True once the cookie-backed session lands: a reload can then recover the
-   * session from the httpOnly cookie instead of dropping the user at /login.
+   * True now that the refresh token is cookie-backed: a reload can recover the session by asking
+   * the server, instead of dropping the user at the login screen.
    */
   get canRestoreOnReload(): boolean {
-    return false;
+    return true;
   },
 };

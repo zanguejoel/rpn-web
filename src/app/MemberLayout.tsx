@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router';
 import { ClipboardList, Home, ShieldCheck, User, Wallet } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { FlagStripe } from '@/components/ui/FlagStripe';
+import { SignOutButton } from '@/components/ui/SignOutButton';
 import { cn } from '@/lib/cn';
 import { initials } from '@/lib/format';
 
@@ -60,6 +61,7 @@ export function MemberLayout() {
                 {initials(member.fullName)}
               </span>
             )}
+            <SignOutButton />
           </div>
         </div>
       </header>

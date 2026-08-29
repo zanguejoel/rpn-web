@@ -1,5 +1,5 @@
 import { session } from '@/lib/auth/session';
-import type { LoginResponse } from './types';
+import type { SessionResponse } from './types';
 
 /* Same-origin by design: Vite proxies /api to rpn-api in dev, and production
    serves both from one host (§9). That is what allows an httpOnly session
@@ -44,19 +44,23 @@ export function setSessionExpiredHandler(handler: () => void): void {
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-async function refreshSession(): Promise<boolean> {
-  const refreshToken = session.getRefreshToken();
-  if (!refreshToken) return false;
-
+/**
+ * Exchanges the httpOnly refresh cookie for a new access token.
+ *
+ * Nothing is read from JavaScript here — the browser attaches the cookie on its own, which is
+ * exactly why the token is safe from a compromised script. This same call is what recovers a
+ * session after a page reload.
+ */
+export async function refreshSession(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE}/auth/refresh`, {
+    const response = await fetch(`${API_BASE}/auth/session/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      headers: { 'X-Requested-With': 'rpn-web' },
+      credentials: 'same-origin',
     });
     if (!response.ok) return false;
-    const data = (await response.json()) as LoginResponse;
-    session.set({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+    const data = (await response.json()) as SessionResponse;
+    session.set(data.accessToken);
     return true;
   } catch {
     return false;

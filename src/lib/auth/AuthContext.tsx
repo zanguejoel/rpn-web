@@ -1,5 +1,5 @@
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { setSessionExpiredHandler } from '@/lib/api/client';
+import { refreshSession, setSessionExpiredHandler } from '@/lib/api/client';
 import { authApi, meApi } from '@/lib/api/endpoints';
 import { session } from './session';
 import { ADMIN_ROLES, type MemberDto } from '@/lib/api/types';
@@ -25,14 +25,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionExpiredHandler(() => setMember(null));
   }, []);
 
+  /* Boot-time session recovery. The page holds no persisted token, so it asks the server whether
+     the browser is still carrying a valid refresh cookie. A failure here is the ordinary
+     "not signed in" path, not an error worth surfacing. */
   useEffect(() => {
-    // Once the httpOnly session cookie lands (§9), this is where the silent
-    // refresh runs so a reload keeps the user signed in. Until then tokens are
-    // memory-only and there is nothing to restore.
-    if (!session.canRestoreOnReload) return;
     let cancelled = false;
     void (async () => {
       try {
+        const restored = await refreshSession();
+        if (!restored || cancelled) return;
         const profile = await meApi.profile();
         if (!cancelled) setMember(profile);
       } catch {
@@ -48,30 +49,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const response = await authApi.login(email, password);
-    session.set({ accessToken: response.accessToken, refreshToken: response.refreshToken });
+    session.set(response.accessToken);
     setMember(response.member);
     return response.member;
   }, []);
 
   const register = useCallback(async (inviteToken: string, fullName: string, password: string) => {
     const response = await authApi.register(inviteToken, fullName, password);
-    session.set({ accessToken: response.accessToken, refreshToken: response.refreshToken });
+    session.set(response.accessToken);
     setMember(response.member);
     return response.member;
   }, []);
 
   const logout = useCallback(async () => {
-    const refreshToken = session.getRefreshToken();
-    // Clear locally first: the user is signed out even if the server call fails.
+    /* Order matters: the server call must go first, because it is the only thing that can clear an
+       httpOnly cookie — the page cannot. Clearing local state first would leave the browser still
+       holding a valid refresh cookie that a reload would happily use to sign back in. */
+    try {
+      await authApi.logout();
+    } catch {
+      // Best effort: even if it fails the local session goes, and the token expires server-side.
+    }
     session.clear();
     setMember(null);
-    if (refreshToken) {
-      try {
-        await authApi.logout(refreshToken);
-      } catch {
-        // Best effort — the refresh token expires server-side regardless.
-      }
-    }
   }, []);
 
   const refreshProfile = useCallback(async () => {

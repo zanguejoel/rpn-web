@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { FlagStripe } from '@/components/ui/FlagStripe';
+import { SignOutButton } from '@/components/ui/SignOutButton';
 import { cn } from '@/lib/cn';
 
 /* Grouped by how a treasurer actually works: what needs deciding today, then the
@@ -89,7 +90,7 @@ export function AdminLayout() {
             ))}
           </nav>
 
-          <div className="border-t border-border-subtle p-2">
+          <div className="flex flex-col gap-0.5 border-t border-border-subtle p-2">
             <NavLink
               to="/"
               className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-bold text-ink-muted hover:bg-surface-hover"
@@ -97,6 +98,7 @@ export function AdminLayout() {
               <ArrowLeft size={16} aria-hidden="true" />
               Espace membre
             </NavLink>
+            <SignOutButton variant="full" />
           </div>
         </aside>
 

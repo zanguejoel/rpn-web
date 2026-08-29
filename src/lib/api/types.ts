@@ -31,9 +31,19 @@ export interface MemberDto {
   associationName: string;
 }
 
+/** Mobile/JSON sign-in: both tokens in the body, stored in the OS keychain. */
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  member: MemberDto;
+}
+
+/**
+ * Browser sign-in. No refresh token by design — it travels in an httpOnly cookie the page cannot
+ * read, so returning it here too would defeat the point.
+ */
+export interface SessionResponse {
+  accessToken: string;
   member: MemberDto;
 }
 

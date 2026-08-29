@@ -46,7 +46,9 @@ Implémenté : socle (phase 0), connexion, gardes de rôle, tableau de bord et
 console (phases 5 à 8). Ils s'annoncent comme non implémentés plutôt que de
 faire semblant.
 
-⚠️ **Session en mémoire uniquement** pour l'instant : un rechargement de page
-déconnecte. C'est délibéré — aucun jeton ne doit aller dans `localStorage` dans
-une application qui affiche des documents bancaires. La persistance viendra du
-cookie `httpOnly` décrit au §9 du plan, qui reste à implémenter côté backend.
+**Session par cookie `httpOnly`.** Le jeton de rafraîchissement est posé par le
+serveur dans un cookie `httpOnly` + `Secure` + `SameSite=Strict` que la page ne
+peut pas lire ; seul le jeton d'accès, à durée courte, vit en mémoire. Un
+rechargement récupère la session en interrogeant le serveur. Rien n'est écrit
+dans `localStorage` ni `sessionStorage` — c'est délibéré dans une application
+qui affiche des documents bancaires.

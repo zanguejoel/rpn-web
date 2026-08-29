@@ -5,10 +5,10 @@ import type {
   CaseSummaryDto,
   ContributionDto,
   ContributionStatus,
-  LoginResponse,
   MeSummaryDto,
   MemberDto,
   PageResponse,
+  SessionResponse,
 } from './types';
 
 function query(params: Record<string, string | number | undefined>): string {
@@ -20,12 +20,14 @@ function query(params: Record<string, string | number | undefined>): string {
   return qs ? `?${qs}` : '';
 }
 
+/* Browser auth uses the cookie-backed /auth/session endpoints. The /auth/login family still
+   exists for the mobile app, which stores both tokens in the OS keychain instead. */
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<LoginResponse>('/auth/login', { email, password }),
+    api.post<SessionResponse>('/auth/session', { email, password }),
   register: (inviteToken: string, fullName: string, password: string) =>
-    api.post<LoginResponse>('/auth/register', { inviteToken, fullName, password }),
-  logout: (refreshToken: string) => api.post<void>('/auth/logout', { refreshToken }),
+    api.post<SessionResponse>('/auth/session/register', { inviteToken, fullName, password }),
+  logout: () => api.delete<void>('/auth/session'),
 };
 
 export const meApi = {

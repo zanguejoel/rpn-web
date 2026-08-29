@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Strict mode is the point of using TypeScript here; a type error must not
+      # be discoverable only at runtime, in front of a treasurer.
+      - name: Typecheck
+        run: pnpm exec tsc -b --force
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      # The API is same-origin in every environment, so a hardcoded absolute API
+      # URL is always a bug — and one that only shows up after deployment.
+      - name: Check for hardcoded API hosts
+        run: |
+          if grep -rnE "https?://(localhost|127\.0\.0\.1)[:0-9]*/api" src/; then
+            echo "::error::URL d'API absolue dans src/ — l'API doit être appelée en relatif (/api/v1)."
+            exit 1
+          fi

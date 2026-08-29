@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router';
 import { ClipboardList, Home, ShieldCheck, User, Wallet } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { DemoBanner } from '@/components/ui/DemoBanner';
 import { FlagStripe } from '@/components/ui/FlagStripe';
 import { SignOutButton } from '@/components/ui/SignOutButton';
 import { cn } from '@/lib/cn';
@@ -19,6 +20,7 @@ export function MemberLayout() {
   return (
     <div className="flex min-h-dvh flex-col bg-surface-sunken">
       <FlagStripe />
+      <DemoBanner />
       <header className="sticky top-0 z-10 border-b border-border-subtle bg-surface-raised/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3">
           <span className="font-display text-base font-bold text-ink">RPN</span>

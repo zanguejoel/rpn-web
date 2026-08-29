@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { DemoBanner } from '@/components/ui/DemoBanner';
 import { FlagStripe } from '@/components/ui/FlagStripe';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { errorMessage } from '@/lib/api/client';
@@ -41,8 +42,10 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-dvh place-items-center bg-linear-to-b from-surface-sunken to-accent-pale px-4 py-10">
-      <main className="w-full max-w-[420px]">
+    <div className="min-h-dvh bg-linear-to-b from-surface-sunken to-accent-pale">
+      <DemoBanner />
+      <div className="grid min-h-dvh place-items-center px-4 py-10">
+        <main className="w-full max-w-[420px]">
         <div className="mb-7 flex flex-col items-center text-center">
           <div className="grid size-20 place-items-center rounded-full border-[3px] border-flag-yellow bg-surface-raised text-3xl">
             <span aria-hidden="true">🇨🇲</span>
@@ -107,7 +110,8 @@ export default function Login() {
             Première fois ? Contactez votre administrateur RPN pour recevoir votre invitation.
           </p>
         </form>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

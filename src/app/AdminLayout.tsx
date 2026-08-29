@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { DemoBanner } from '@/components/ui/DemoBanner';
 import { FlagStripe } from '@/components/ui/FlagStripe';
 import { SignOutButton } from '@/components/ui/SignOutButton';
 import { cn } from '@/lib/cn';
@@ -53,6 +54,7 @@ export function AdminLayout() {
   return (
     <div className="min-h-dvh bg-surface-sunken">
       <FlagStripe />
+      <DemoBanner />
       <div className="flex">
         <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border-subtle bg-surface-raised lg:flex">
           <div className="border-b border-border-subtle px-4 py-4">

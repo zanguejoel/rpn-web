@@ -4,11 +4,15 @@ import { LoadingState } from '@/components/ui/States';
 
 /** Any signed-in member. Sends visitors to /connexion, remembering where they were headed. */
 export function RequireAuth() {
-  const { member, isLoading } = useAuth();
+  const { member, isLoading, justSignedOut } = useAuth();
   const location = useLocation();
 
   if (isLoading) return <LoadingState label="Vérification de votre session…" />;
-  if (!member) return <Navigate to="/connexion" replace state={{ from: location.pathname }} />;
+  if (!member) {
+    // Remember the page only when the session lapsed. After a deliberate sign-out the next person
+    // to sign in on this machine is not the one who was on that page.
+    return <Navigate to="/connexion" replace {...(justSignedOut ? {} : { state: { from: location.pathname } })} />;
+  }
   return <Outlet />;
 }
 

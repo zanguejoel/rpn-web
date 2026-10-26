@@ -8,6 +8,7 @@ import ForgotPassword from '@/routes/ForgotPassword';
 import Home from '@/routes/member/Home';
 import Cases from '@/routes/member/Cases';
 import CaseDetail from '@/routes/member/CaseDetail';
+import DeclareContribution from '@/routes/member/DeclareContribution';
 import Contributions from '@/routes/member/Contributions';
 import Profile from '@/routes/member/Profile';
 
@@ -48,6 +49,7 @@ const routes: RouteObject[] = [
           { path: '/', element: <Home /> },
           { path: '/cas', element: <Cases /> },
           { path: '/cas/:caseId', element: <CaseDetail /> },
+          { path: '/cas/:caseId/declarer', element: <DeclareContribution /> },
           { path: '/contributions', element: <Contributions /> },
           { path: '/profil', element: <Profile /> },
         ],

@@ -9,6 +9,12 @@ interface AuthValue {
   /** True while the boot-time session restore is still running. */
   isLoading: boolean;
   isAdmin: boolean;
+  /**
+   * True after a deliberate sign-out. The route guards use it to avoid remembering the page the
+   * previous user was on: "return where you were" is right after a session EXPIRES, and wrong after
+   * someone signs out and a different person signs in on the same machine.
+   */
+  justSignedOut: boolean;
   login: (email: string, password: string) => Promise<MemberDto>;
   register: (inviteToken: string, fullName: string, password: string) => Promise<MemberDto>;
   logout: () => Promise<void>;
@@ -20,6 +26,7 @@ const AuthContext = createContext<AuthValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [member, setMember] = useState<MemberDto | null>(null);
   const [isLoading, setIsLoading] = useState(session.canRestoreOnReload);
+  const [justSignedOut, setJustSignedOut] = useState(false);
 
   useEffect(() => {
     setSessionExpiredHandler(() => setMember(null));
@@ -50,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const response = await authApi.login(email, password);
     session.set(response.accessToken);
+    setJustSignedOut(false);
     setMember(response.member);
     return response.member;
   }, []);
@@ -57,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (inviteToken: string, fullName: string, password: string) => {
     const response = await authApi.register(inviteToken, fullName, password);
     session.set(response.accessToken);
+    setJustSignedOut(false);
     setMember(response.member);
     return response.member;
   }, []);
@@ -71,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Best effort: even if it fails the local session goes, and the token expires server-side.
     }
     session.clear();
+    setJustSignedOut(true);
     setMember(null);
   }, []);
 
@@ -83,12 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       member,
       isLoading,
       isAdmin: member !== null && ADMIN_ROLES.includes(member.role),
+      justSignedOut,
       login,
       register,
       logout,
       refreshProfile,
     }),
-    [member, isLoading, login, register, logout, refreshProfile],
+    [member, isLoading, justSignedOut, login, register, logout, refreshProfile],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

@@ -1,6 +1,8 @@
 import { api } from './client';
 import type {
   CaseDetailDto,
+  ContributionMethod,
+  PresignedUpload,
   CaseListFilter,
   CaseSummaryDto,
   ContributionDto,
@@ -62,4 +64,26 @@ export const adminApi = {
     api.get<PageResponse<MemberDto>>(`/admin/members${query({ page, size })}`),
   proofUrl: (contributionId: string) =>
     api.get<{ url: string }>(`/contributions/${contributionId}/proof`),
+};
+
+export interface DeclareInput {
+  amountCents: number;
+  method: ContributionMethod;
+  reference?: string | undefined;
+  storageKey: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export const contributionsApi = {
+  presign: (mimeType: string, sizeBytes: number) =>
+    api.post<PresignedUpload>('/uploads/presign', { mimeType, sizeBytes }),
+  /**
+   * The key is generated once per user-initiated attempt and reused on retry, so a flaky network
+   * can never turn one declaration into two.
+   */
+  declare: (caseId: string, idempotencyKey: string, input: DeclareInput) =>
+    api.post<ContributionDto>(`/cases/${caseId}/contributions`, input, {
+      'Idempotency-Key': idempotencyKey,
+    }),
 };

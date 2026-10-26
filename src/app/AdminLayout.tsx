@@ -20,7 +20,7 @@ import { cn } from '@/lib/cn';
 
 /* Grouped by how a treasurer actually works: what needs deciding today, then the
    records behind it, then governance. Not alphabetical, not by API resource. */
-const SECTIONS: { heading: string; items: { to: string; label: string; icon: typeof Users; end?: boolean }[] }[] = [
+const SECTIONS: { heading: string; items: { to: string; label: string; icon: typeof Users; end?: boolean; soon?: boolean }[] }[] = [
   {
     heading: 'À traiter',
     items: [
@@ -33,17 +33,17 @@ const SECTIONS: { heading: string; items: { to: string; label: string; icon: typ
     items: [
       { to: '/admin/cas', label: 'Cas RPN', icon: FolderOpen },
       { to: '/admin/membres', label: 'Membres', icon: Users },
-      { to: '/admin/invitations', label: 'Invitations', icon: MailPlus },
+      { to: '/admin/invitations', label: 'Invitations', icon: MailPlus, soon: true },
     ],
   },
   {
     heading: 'Gouvernance',
     items: [
-      { to: '/admin/finances', label: 'Finances', icon: Banknote },
-      { to: '/admin/exports', label: 'Exports', icon: FileDown },
-      { to: '/admin/journal', label: "Journal d'audit", icon: ScrollText },
-      { to: '/admin/confidentialite', label: 'Confidentialité', icon: BookLock },
-      { to: '/admin/parametres', label: 'Paramètres', icon: Settings },
+      { to: '/admin/finances', label: 'Finances', icon: Banknote, soon: true },
+      { to: '/admin/exports', label: 'Exports', icon: FileDown, soon: true },
+      { to: '/admin/journal', label: "Journal d'audit", icon: ScrollText, soon: true },
+      { to: '/admin/confidentialite', label: 'Confidentialité', icon: BookLock, soon: true },
+      { to: '/admin/parametres', label: 'Paramètres', icon: Settings, soon: true },
     ],
   },
 ];
@@ -69,7 +69,7 @@ export function AdminLayout() {
                   {section.heading}
                 </p>
                 <div className="flex flex-col gap-0.5">
-                  {section.items.map(({ to, label, icon: Icon, end }) => (
+                  {section.items.map(({ to, label, icon: Icon, end, soon }) => (
                     <NavLink
                       key={to}
                       to={to}
@@ -85,6 +85,11 @@ export function AdminLayout() {
                     >
                       <Icon size={16} aria-hidden="true" />
                       {label}
+                      {soon && (
+                        <span className="ml-auto rounded-full bg-surface-hover px-2 py-0.5 text-[10px] font-extrabold text-ink-faint">
+                          Bientôt
+                        </span>
+                      )}
                     </NavLink>
                   ))}
                 </div>

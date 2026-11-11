@@ -1,5 +1,8 @@
 import { api } from './client';
 import type {
+  AuditLogDto,
+  ParticipantsResponse,
+  SettingsDto,
   CaseDetailDto,
   ContributionMethod,
   PresignedUpload,
@@ -62,6 +65,17 @@ export const adminApi = {
     api.post<ContributionDto>(`/contributions/${contributionId}/reject`, { reason }),
   members: (page = 0, size = 50) =>
     api.get<PageResponse<MemberDto>>(`/admin/members${query({ page, size })}`),
+  participants: (caseId: string) => api.get<ParticipantsResponse>(`/cases/${caseId}/participants`),
+  openCase: (input: OpenCaseInput) => api.post<CaseDetailDto>('/cases', input),
+  closeCase: (caseId: string) => api.post<CaseDetailDto>(`/cases/${caseId}/close`),
+  /** Money received outside the app. One key per save attempt: a double click must not count it twice. */
+  recordPayment: (caseId: string, idempotencyKey: string, input: RecordPaymentInput) =>
+    api.post<ContributionDto>(`/cases/${caseId}/payments`, input, { 'Idempotency-Key': idempotencyKey }),
+  auditLog: (page = 0, size = 50) =>
+    api.get<PageResponse<AuditLogDto>>(`/admin/audit-log${query({ page, size })}`),
+  settings: () => api.get<SettingsDto>('/admin/settings'),
+  updateSettings: (paymentInstructions: string) =>
+    api.patch<SettingsDto>('/admin/settings', { paymentInstructions }),
   proofUrl: (contributionId: string) =>
     api.get<{ url: string }>(`/contributions/${contributionId}/proof`),
 };
@@ -87,3 +101,22 @@ export const contributionsApi = {
       'Idempotency-Key': idempotencyKey,
     }),
 };
+
+export interface OpenCaseInput {
+  deceasedName: string;
+  dateOfDeath: string;
+  beneficiaryMemberId: string;
+  contributionPerMemberCents: number;
+  deadline: string;
+  /** Omitted means every active member. */
+  participantIds?: string[] | undefined;
+}
+
+export interface RecordPaymentInput {
+  memberId: string;
+  amountCents: number;
+  method: ContributionMethod;
+  reference?: string | undefined;
+  /** YYYY-MM-DD; defaults to today on the server. */
+  receivedOn?: string | undefined;
+}

@@ -1,4 +1,7 @@
 import { NavLink, Outlet } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
+import { adminApi } from '@/lib/api/endpoints';
+import { queries } from '@/lib/query/keys';
 import {
   ArrowLeft,
   BookLock,
@@ -25,7 +28,7 @@ const SECTIONS: { heading: string; items: { to: string; label: string; icon: typ
     heading: 'À traiter',
     items: [
       { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, end: true },
-      { to: '/admin/validation', label: 'File de validation', icon: ListChecks },
+      { to: '/admin/validation', label: 'Confirmer les paiements', icon: ListChecks },
     ],
   },
   {
@@ -41,15 +44,22 @@ const SECTIONS: { heading: string; items: { to: string; label: string; icon: typ
     items: [
       { to: '/admin/finances', label: 'Finances', icon: Banknote, soon: true },
       { to: '/admin/exports', label: 'Exports', icon: FileDown, soon: true },
-      { to: '/admin/journal', label: "Journal d'audit", icon: ScrollText, soon: true },
+      { to: '/admin/journal', label: "Journal d'audit", icon: ScrollText },
       { to: '/admin/confidentialite', label: 'Confidentialité', icon: BookLock, soon: true },
-      { to: '/admin/parametres', label: 'Paramètres', icon: Settings, soon: true },
+      { to: '/admin/parametres', label: 'Paramètres', icon: Settings },
     ],
   },
 ];
 
 export function AdminLayout() {
   const { member } = useAuth();
+  // "Where do I confirm payments?" was the stakeholder's question: the queue now announces itself.
+  const pending = useQuery({
+    queryKey: queries.admin.pendingContributions(0).queryKey,
+    queryFn: () => adminApi.pendingContributions(0),
+    refetchInterval: 60_000,
+  });
+  const pendingCount = pending.data?.totalItems ?? 0;
 
   return (
     <div className="min-h-dvh bg-surface-sunken">
@@ -85,6 +95,14 @@ export function AdminLayout() {
                     >
                       <Icon size={16} aria-hidden="true" />
                       {label}
+                      {to === '/admin/validation' && pendingCount > 0 && (
+                        <span
+                          className="ml-auto rounded-full bg-flag-red px-2 py-0.5 text-[10px] font-extrabold text-white"
+                          aria-label={`${pendingCount} preuve(s) à valider`}
+                        >
+                          {pendingCount}
+                        </span>
+                      )}
                       {soon && (
                         <span className="ml-auto rounded-full bg-surface-hover px-2 py-0.5 text-[10px] font-extrabold text-ink-faint">
                           Bientôt

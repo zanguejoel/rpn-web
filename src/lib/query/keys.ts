@@ -16,5 +16,8 @@ export const queries = createQueryKeyStore({
   admin: {
     pendingContributions: (page: number) => [page],
     members: (page: number) => [page],
+    participants: (caseId: string) => [caseId],
+    auditLog: (page: number) => [page],
+    settings: null,
   },
 });

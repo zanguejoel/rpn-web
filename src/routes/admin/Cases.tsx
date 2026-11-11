@@ -32,6 +32,14 @@ export default function AdminCases() {
       <PageHeader
         title="Cas RPN"
         subtitle={cases.data ? `${cases.data.totalItems} cas` : undefined}
+        actions={
+          <Link
+            to="/admin/cas/nouveau"
+            className="inline-flex min-h-11 items-center rounded-[var(--radius-button)] bg-accent px-5 text-sm font-extrabold text-accent-contrast hover:bg-accent-hover"
+          >
+            Ouvrir un cas
+          </Link>
+        }
       />
       <FilterChips label="Filtrer les cas" options={FILTERS} value={filter} onChange={setFilter} />
 
@@ -59,7 +67,7 @@ export default function AdminCases() {
                 return (
                   <tr key={item.id} className="hover:bg-surface-hover">
                     <td className="px-4 py-3">
-                      <Link to={`/cas/${item.id}`} className="font-extrabold text-ink hover:text-accent hover:underline">
+                      <Link to={`/admin/cas/${item.id}`} className="font-extrabold text-ink hover:text-accent hover:underline">
                         {item.deceasedName}
                       </Link>
                       <p className="text-[11px] text-ink-muted">{item.caseNumber}</p>

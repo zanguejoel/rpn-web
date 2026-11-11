@@ -35,8 +35,9 @@ export default function CaseDetail() {
   const closed = c.status === 'CLOSED';
   const remaining = daysUntil(c.deadline);
   const mine = c.myContribution;
-  // A rejected declaration can be resubmitted; a pending or confirmed one blocks a second.
-  const canDeclare = !closed && (mine === null || mine.status === 'REJECTED');
+  // A rejected declaration can be resubmitted; a pending or confirmed one blocks a second. Only
+  // participants owe anything: the server refuses declarations from anyone else.
+  const canDeclare = !closed && c.iAmParticipant && (mine === null || mine.status === 'REJECTED');
 
   return (
     <section className="flex flex-col gap-5">
@@ -69,6 +70,22 @@ export default function CaseDetail() {
             </dl>
           </Card>
 
+          {!closed && c.iAmParticipant && (
+            <Card className="flex flex-col gap-2 border-l-4 border-l-flag-green">
+              <h2 className="font-display text-sm font-bold text-ink">Comment payer</h2>
+              {c.paymentInstructions ? (
+                <p className="text-[13px] leading-relaxed whitespace-pre-line text-ink">{c.paymentInstructions}</p>
+              ) : (
+                <p className="text-[13px] text-ink-muted">
+                  Les instructions de paiement n'ont pas encore été renseignées. Contactez votre trésorier.
+                </p>
+              )}
+              <p className="text-[12px] text-ink-muted">
+                Payez d'abord, puis revenez ici déclarer votre paiement avec la preuve.
+              </p>
+            </Card>
+          )}
+
           <Card className="flex flex-col gap-3">
             <h2 className="font-display text-sm font-bold text-ink">Progression de la collecte</h2>
             <ProgressBar percent={c.progressPercent} label={`Collecte ${c.deceasedName}`} />
@@ -100,6 +117,12 @@ export default function CaseDetail() {
               <p className="text-[12px] font-semibold text-confirmed-ink">Merci — votre contribution est confirmée.</p>
             )}
             {closed && !mine && <p className="text-[12px] text-ink-muted">Ce cas est clôturé.</p>}
+            {!closed && !c.iAmParticipant && !mine && (
+              <p className="text-[12px] text-ink-muted">Aucune contribution n'est attendue de vous pour ce cas.</p>
+            )}
+            {mine?.recordedManually && (
+              <p className="text-[12px] text-ink-muted">Paiement enregistré par le trésorier.</p>
+            )}
 
             {canDeclare && (
               <Link to={`/cas/${c.id}/declarer`}>

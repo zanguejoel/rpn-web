@@ -20,6 +20,8 @@ const AdminLayout = lazy(() =>
 const AdminDashboard = lazy(() => import('@/routes/admin/Dashboard'));
 const AdminValidation = lazy(() => import('@/routes/admin/ValidationQueue'));
 const AdminCases = lazy(() => import('@/routes/admin/Cases'));
+const AdminOpenCase = lazy(() => import('@/routes/admin/OpenCase'));
+const AdminCaseRoster = lazy(() => import('@/routes/admin/CaseRoster'));
 const AdminMembers = lazy(() => import('@/routes/admin/Members'));
 const AdminInvitations = lazy(() => import('@/routes/admin/Invitations'));
 const AdminFinances = lazy(() => import('@/routes/admin/Finances'));
@@ -64,6 +66,8 @@ const routes: RouteObject[] = [
               { index: true, element: lazyBoundary(<AdminDashboard />) },
               { path: 'validation', element: lazyBoundary(<AdminValidation />) },
               { path: 'cas', element: lazyBoundary(<AdminCases />) },
+              { path: 'cas/nouveau', element: lazyBoundary(<AdminOpenCase />) },
+              { path: 'cas/:caseId', element: lazyBoundary(<AdminCaseRoster />) },
               { path: 'membres', element: lazyBoundary(<AdminMembers />) },
               { path: 'invitations', element: lazyBoundary(<AdminInvitations />) },
               { path: 'finances', element: lazyBoundary(<AdminFinances />) },

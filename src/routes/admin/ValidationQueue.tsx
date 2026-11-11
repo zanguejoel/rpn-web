@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Keyboard, X } from 'lucide-react';
 import { adminApi, casesApi } from '@/lib/api/endpoints';
@@ -21,7 +22,9 @@ const METHOD_LABEL: Record<ContributionDto['method'], string> = {
 
 export default function ValidationQueue() {
   const queryClient = useQueryClient();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Arriving from a case's roster ("Examiner la preuve") opens straight on that proof.
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('c'));
   const [rejecting, setRejecting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -144,7 +147,7 @@ export default function ValidationQueue() {
     <section className="flex h-[calc(100dvh-6rem)] flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl font-bold text-ink">File de validation</h1>
+          <h1 className="font-display text-xl font-bold text-ink">Confirmer les paiements</h1>
           <p className="mt-1 text-[13px] text-ink-muted">
             {queue.data?.totalItems ?? 0} preuve(s) en attente · les plus anciennes d'abord
           </p>

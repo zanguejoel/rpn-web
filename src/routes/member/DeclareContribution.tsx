@@ -112,6 +112,9 @@ export default function DeclareContribution() {
   }
   const c = detail.data;
 
+  if (!c.iAmParticipant) {
+    return <ErrorState message="Aucune contribution n'est attendue de vous pour ce cas." />;
+  }
   if (c.status === 'CLOSED' || (c.myContribution && c.myContribution.status !== 'REJECTED')) {
     return (
       <ErrorState message="Vous ne pouvez plus déclarer de paiement pour ce cas : il est clôturé ou déjà déclaré." />

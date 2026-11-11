@@ -22,6 +22,8 @@ export interface PageResponse<T> {
   totalPages: number;
 }
 
+export type MemberStatus = 'ACTIVE' | 'INACTIVE';
+
 export interface MemberDto {
   id: string;
   rpnNumber: string;
@@ -29,6 +31,7 @@ export interface MemberDto {
   email: string;
   role: Role;
   associationName: string;
+  status: MemberStatus;
 }
 
 /** Mobile/JSON sign-in: both tokens in the body, stored in the OS keychain. */
@@ -66,6 +69,8 @@ export interface ContributionDto {
   declaredAt: string;
   validatedAt: string | null;
   rejectionReason: string | null;
+  /** True when a treasurer recorded a payment received outside the app. */
+  recordedManually: boolean;
 }
 
 export interface CaseSummaryDto {
@@ -86,6 +91,60 @@ export interface CaseDetailDto extends CaseSummaryDto {
   beneficiaryMemberName: string;
   beneficiaryRpnNumber: string;
   myContribution: ContributionDto | null;
+  /** Whether the signed-in member owes a contribution on this case. */
+  iAmParticipant: boolean;
+  /** Where members send their money; null until an admin sets it. */
+  paymentInstructions: string | null;
+}
+
+export type ParticipantStatus = 'NONE' | ContributionStatus;
+
+export interface ParticipantDto {
+  memberId: string;
+  rpnNumber: string;
+  fullName: string;
+  email: string;
+  /** False for someone who contributed without being on the list — shown so no money vanishes. */
+  participant: boolean;
+  status: ParticipantStatus;
+  contributionId: string | null;
+  amountCents: number | null;
+  declaredAt: string | null;
+  recordedManually: boolean;
+  rejectionReason: string | null;
+}
+
+export interface ParticipantsResponse {
+  participants: number;
+  confirmed: number;
+  pending: number;
+  rejected: number;
+  notDeclared: number;
+  items: ParticipantDto[];
+}
+
+export type AuditAction =
+  | 'CASE_OPENED'
+  | 'CASE_CLOSED'
+  | 'CONTRIBUTION_VALIDATED'
+  | 'CONTRIBUTION_REJECTED'
+  | 'PAYMENT_RECORDED'
+  | 'SETTINGS_UPDATED';
+
+export interface AuditLogDto {
+  id: string;
+  createdAt: string;
+  actorName: string | null;
+  actorRpnNumber: string | null;
+  action: AuditAction;
+  entityType: string;
+  entityId: string | null;
+  detail: string | null;
+}
+
+export interface SettingsDto {
+  associationName: string;
+  paymentInstructions: string | null;
 }
 
 export interface PresignedUpload {

@@ -35,10 +35,30 @@ export default function AdminDashboard() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-xl font-bold text-ink">Tableau de bord</h1>
-        <p className="mt-1 text-[13px] text-ink-muted">Ce qui demande une décision aujourd'hui.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-xl font-bold text-ink">Tableau de bord</h1>
+          <p className="mt-1 text-[13px] text-ink-muted">Ce qui demande une décision aujourd'hui.</p>
+        </div>
+        <Link
+          to="/admin/cas/nouveau"
+          className="inline-flex min-h-11 items-center rounded-[var(--radius-button)] border border-accent bg-surface-raised px-5 text-sm font-extrabold text-accent hover:bg-accent-pale"
+        >
+          Ouvrir un cas
+        </Link>
       </div>
+
+      {pending.length > 0 && (
+        <Link
+          to="/admin/validation"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] bg-accent px-5 py-4 text-accent-contrast shadow-[var(--shadow-card)] hover:bg-accent-hover"
+        >
+          <span className="text-sm font-extrabold">
+            {queue.data?.totalItems} paiement(s) à confirmer · {formatCents(pendingCents)}
+          </span>
+          <span className="text-sm font-extrabold">Confirmer les paiements →</span>
+        </Link>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Preuves en attente" value={String(queue.data?.totalItems ?? 0)} accent />
@@ -50,9 +70,9 @@ export default function AdminDashboard() {
       <div className="grid gap-5 xl:grid-cols-2">
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-sm font-bold text-ink">File de validation</h2>
+            <h2 className="font-display text-sm font-bold text-ink">Paiements à confirmer</h2>
             <Link to="/admin/validation" className="text-xs font-extrabold text-accent hover:underline">
-              Ouvrir la file →
+              Tout voir →
             </Link>
           </div>
 
@@ -89,7 +109,9 @@ export default function AdminDashboard() {
                 return (
                   <li key={rpnCase.id} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-[13px] font-bold text-ink">{rpnCase.deceasedName}</p>
+                      <Link to={`/admin/cas/${rpnCase.id}`} className="truncate text-[13px] font-bold text-ink hover:text-accent hover:underline">
+                        {rpnCase.deceasedName}
+                      </Link>
                       <CaseBadge status={rpnCase.status} urgent={rpnCase.urgent} />
                     </div>
                     <ProgressBar percent={rpnCase.progressPercent} label={`Collecte ${rpnCase.deceasedName}`} />
@@ -115,11 +137,10 @@ export default function AdminDashboard() {
         <div className="flex items-start gap-3">
           <AlertTriangle size={16} className="mt-0.5 shrink-0 text-pending-ink" aria-hidden="true" />
           <div className="text-[13px] text-ink-muted">
-            <p className="font-bold text-ink">Indicateurs encore indisponibles</p>
+            <p className="font-bold text-ink">Qui n'a pas payé ?</p>
             <p className="mt-1">
-              Retardataires par cas, écarts de rapprochement et activité récente nécessitent
-              d'abord les tables <code>case_participants</code> et <code>audit_log</code> côté
-              backend (phase 2 du plan).
+              Ouvrez un cas pour voir chaque participant, son statut, et enregistrer un paiement reçu
+              hors de l'application. Les rappels automatiques d'échéance arrivent à la prochaine étape.
             </p>
           </div>
         </div>

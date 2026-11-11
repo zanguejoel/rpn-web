@@ -1,0 +1,38 @@
+name: Deploy
+
+# Render watches only rpn-backend, whose image bundles this front end. Without this, a change pushed
+# here alone never reaches the live site: the web screens for the stakeholder's feedback sat undeployed
+# for exactly that reason. After CI passes on main, ask Render to rebuild, which pulls this repository's
+# latest main.
+#
+# Requires the repository secret RENDER_DEPLOY_HOOK (Render → rpn-demo → Settings → Deploy Hook). It is
+# a secret URL: set it with `gh secret set RENDER_DEPLOY_HOOK --repo zanguejoel/rpn-web`, never paste it
+# anywhere else. Missing, this job FAILS on purpose: silently skipping would bring back the very
+# problem it exists to fix.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    name: Trigger a Render rebuild
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the deploy hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK n'est pas défini : ce changement ne sera pas mis en ligne. Voir l'en-tête de ce fichier."
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Reconstruction demandée à Render."

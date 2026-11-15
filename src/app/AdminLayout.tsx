@@ -10,6 +10,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   ListChecks,
+  Mail,
   MailPlus,
   ScrollText,
   Settings,
@@ -36,7 +37,8 @@ const SECTIONS: { heading: string; items: { to: string; label: string; icon: typ
     items: [
       { to: '/admin/cas', label: 'Cas RPN', icon: FolderOpen },
       { to: '/admin/membres', label: 'Membres', icon: Users },
-      { to: '/admin/invitations', label: 'Invitations', icon: MailPlus, soon: true },
+      { to: '/admin/invitations', label: 'Invitations', icon: MailPlus },
+      { to: '/admin/courriels', label: 'Courriels', icon: Mail },
     ],
   },
   {

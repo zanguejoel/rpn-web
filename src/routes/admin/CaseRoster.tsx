@@ -12,8 +12,8 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { RecordPaymentDialog } from '@/features/cases/RecordPaymentDialog';
 import { adminApi, casesApi } from '@/lib/api/endpoints';
 import { errorMessage } from '@/lib/api/client';
-import type { ParticipantDto } from '@/lib/api/types';
-import { daysUntil, formatCents, formatDate } from '@/lib/format';
+import type { ParticipantDto, RemindResult } from '@/lib/api/types';
+import { daysUntil, formatAge, formatCents, formatDate } from '@/lib/format';
 import { queries } from '@/lib/query/keys';
 
 type Filter = 'all' | 'unpaid' | 'pending' | 'confirmed';
@@ -24,6 +24,24 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'pending', label: 'À valider' },
   { value: 'confirmed', label: 'Confirmés' },
 ];
+
+/** Same window the server enforces: one manual reminder per member per 24 h. */
+const REMIND_THROTTLE_MS = 24 * 60 * 60 * 1000;
+
+function isLate(p: ParticipantDto): boolean {
+  return p.participant && (p.status === 'NONE' || p.status === 'REJECTED');
+}
+
+function recentlyReminded(p: ParticipantDto): boolean {
+  return p.lastReminderAt !== null && Date.now() - new Date(p.lastReminderAt).getTime() < REMIND_THROTTLE_MS;
+}
+
+function remindSummary(r: RemindResult): string {
+  const parts = [`${r.sent} relance${r.sent > 1 ? 's' : ''} envoyée${r.sent > 1 ? 's' : ''}`];
+  if (r.throttled > 0) parts.push(`${r.throttled} déjà relancé${r.throttled > 1 ? 's' : ''} il y a moins de 24 h`);
+  if (r.notLate > 0) parts.push(`${r.notLate} déjà à jour`);
+  return parts.join(' · ') + '.';
+}
 
 function matches(filter: Filter, p: ParticipantDto): boolean {
   switch (filter) {
@@ -45,6 +63,7 @@ export default function CaseRoster() {
   const [filter, setFilter] = useState<Filter>('all');
   const [recording, setRecording] = useState<ParticipantDto | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [remindNote, setRemindNote] = useState<string | null>(null);
 
   const detail = useQuery({
     queryKey: queries.cases.detail(caseId).queryKey,
@@ -68,6 +87,15 @@ export default function CaseRoster() {
     },
   });
 
+  const remind = useMutation({
+    mutationFn: (memberIds?: string[]) => adminApi.remind(caseId, memberIds),
+    onSuccess: async (result) => {
+      setRemindNote(remindSummary(result));
+      await queryClient.invalidateQueries({ queryKey: queries.admin.participants(caseId).queryKey });
+    },
+    onError: (error) => setRemindNote(errorMessage(error)),
+  });
+
   if (detail.isLoading || roster.isLoading) return <LoadingState label="Chargement du cas…" />;
   if (detail.isError || !detail.data) {
     return <ErrorState message={errorMessage(detail.error)} onRetry={() => void detail.refetch()} />;
@@ -82,6 +110,7 @@ export default function CaseRoster() {
   const remaining = daysUntil(c.deadline);
   const rows = r.items.filter((p) => matches(filter, p));
   const unpaid = r.notDeclared + r.rejected;
+  const remindable = r.items.filter((p) => isLate(p) && !recentlyReminded(p)).length;
 
   return (
     <section className="flex flex-col gap-5">
@@ -101,11 +130,35 @@ export default function CaseRoster() {
           </p>
         </div>
         {open && (
-          <Button variant="secondary" onClick={() => setConfirmClose(true)}>
-            Clôturer le cas
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {unpaid > 0 && (
+              <Button
+                loading={remind.isPending && remind.variables === undefined}
+                disabled={remindable === 0}
+                title={remindable === 0 ? 'Tous les retardataires ont été relancés il y a moins de 24 h.' : undefined}
+                onClick={() => remind.mutate(undefined)}
+              >
+                Relancer les retardataires ({remindable})
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setConfirmClose(true)}>
+              Clôturer le cas
+            </Button>
+          </div>
         )}
       </div>
+
+      {open && remaining >= 0 && (
+        <p className="-mt-2 text-[12px] text-ink-muted">
+          Rappels automatiques par courriel 7 jours puis 1 jour avant l'échéance, aux participants qui n'ont rien
+          déclaré.
+        </p>
+      )}
+      {remindNote && (
+        <p role="status" className="rounded-[var(--radius-card)] bg-accent-pale px-4 py-2.5 text-[13px] font-semibold text-accent">
+          {remindNote}
+        </p>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Stat label="Participants" value={r.participants} />
@@ -132,7 +185,7 @@ export default function CaseRoster() {
         <EmptyState title="Personne dans cette catégorie." />
       ) : (
         <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[720px] text-left text-[13px]">
+          <table className="w-full min-w-[820px] text-left text-[13px]">
             <thead className="border-b border-border-subtle text-[11px] font-extrabold tracking-wide text-ink-muted uppercase">
               <tr>
                 <th className="px-4 py-3">Membre</th>
@@ -158,17 +211,34 @@ export default function CaseRoster() {
                     {p.status === 'REJECTED' && p.rejectionReason && (
                       <p className="mt-1 max-w-xs text-[11px] text-urgent-ink">Motif : {p.rejectionReason}</p>
                     )}
+                    {isLate(p) && p.lastReminderAt && (
+                      <p className="mt-1 text-[11px] text-ink-muted">Relancé {formatAge(p.lastReminderAt)}</p>
+                    )}
                   </td>
                   <td className="numeric px-4 py-3 text-right font-bold">
                     {p.amountCents === null ? '—' : formatCents(p.amountCents)}
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{p.declaredAt ? formatDate(p.declaredAt) : '—'}</td>
                   <td className="px-4 py-3 text-right">
-                    <RowAction
-                      participant={p}
-                      caseOpen={open}
-                      onRecord={() => setRecording(p)}
-                    />
+                    <div className="flex justify-end gap-2">
+                      {open && isLate(p) && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={recentlyReminded(p)}
+                          loading={remind.isPending && remind.variables?.[0] === p.memberId}
+                          title={recentlyReminded(p) ? 'Déjà relancé il y a moins de 24 h.' : undefined}
+                          onClick={() => remind.mutate([p.memberId])}
+                        >
+                          Relancer
+                        </Button>
+                      )}
+                      <RowAction
+                        participant={p}
+                        caseOpen={open}
+                        onRecord={() => setRecording(p)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

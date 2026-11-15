@@ -16,7 +16,9 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: process.env.VITE_API_ORIGIN ?? 'http://localhost:8080',
-        changeOrigin: false,
+        // A remote API (e.g. VITE_API_ORIGIN=https://rpn-demo.onrender.com) routes on the Host
+        // header, so it must see its own name; the local API doesn't care.
+        changeOrigin: process.env.VITE_API_ORIGIN !== undefined,
       },
     },
   },

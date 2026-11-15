@@ -114,8 +114,10 @@ async function send(path: string, options: RequestOptions, isRetry = false): Pro
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await send(path, options);
-  if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  // 204, and 202/201 with no body (e.g. "forgot password"), carry nothing to parse.
+  const text = await response.text();
+  if (text === '') return undefined as T;
+  return JSON.parse(text) as T;
 }
 
 export const api = {

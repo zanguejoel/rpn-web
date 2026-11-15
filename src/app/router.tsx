@@ -5,6 +5,8 @@ import { RedirectIfAuthenticated, RequireAdmin, RequireAuth } from './guards';
 import { LoadingState } from '@/components/ui/States';
 import Login from '@/routes/Login';
 import ForgotPassword from '@/routes/ForgotPassword';
+import ResetPassword from '@/routes/ResetPassword';
+import AcceptInvitation from '@/routes/AcceptInvitation';
 import Home from '@/routes/member/Home';
 import Cases from '@/routes/member/Cases';
 import CaseDetail from '@/routes/member/CaseDetail';
@@ -26,6 +28,7 @@ const AdminMembers = lazy(() => import('@/routes/admin/Members'));
 const AdminInvitations = lazy(() => import('@/routes/admin/Invitations'));
 const AdminFinances = lazy(() => import('@/routes/admin/Finances'));
 const AdminExports = lazy(() => import('@/routes/admin/Exports'));
+const AdminEmails = lazy(() => import('@/routes/admin/Emails'));
 const AdminAuditLog = lazy(() => import('@/routes/admin/AuditLog'));
 const AdminPrivacy = lazy(() => import('@/routes/admin/Privacy'));
 const AdminSettings = lazy(() => import('@/routes/admin/Settings'));
@@ -40,8 +43,11 @@ const routes: RouteObject[] = [
     children: [
       { path: '/connexion', element: <Login /> },
       { path: '/mot-de-passe-oublie', element: <ForgotPassword /> },
+      { path: '/reinitialiser/:token', element: <ResetPassword /> },
     ],
   },
+  // Unguarded on purpose: it explains itself to a signed-in visitor instead of silently redirecting.
+  { path: '/invitation/:token', element: <AcceptInvitation /> },
   {
     element: <RequireAuth />,
     children: [
@@ -72,6 +78,7 @@ const routes: RouteObject[] = [
               { path: 'invitations', element: lazyBoundary(<AdminInvitations />) },
               { path: 'finances', element: lazyBoundary(<AdminFinances />) },
               { path: 'exports', element: lazyBoundary(<AdminExports />) },
+              { path: 'courriels', element: lazyBoundary(<AdminEmails />) },
               { path: 'journal', element: lazyBoundary(<AdminAuditLog />) },
               { path: 'confidentialite', element: lazyBoundary(<AdminPrivacy />) },
               { path: 'parametres', element: lazyBoundary(<AdminSettings />) },

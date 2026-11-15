@@ -17,6 +17,7 @@ const ACTION: Record<AuditAction, { label: string; tone: BadgeTone }> = {
   // Highlighted: no proof backs it, only the treasurer's word.
   PAYMENT_RECORDED: { label: 'Paiement saisi', tone: 'pending' },
   SETTINGS_UPDATED: { label: 'Paramètres', tone: 'neutral' },
+  REMINDERS_SENT: { label: 'Relance', tone: 'neutral' },
 };
 
 export default function AdminAuditLog() {

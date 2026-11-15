@@ -19,5 +19,8 @@ export const queries = createQueryKeyStore({
     participants: (caseId: string) => [caseId],
     auditLog: (page: number) => [page],
     settings: null,
+    invitations: null,
+    emails: (page: number) => [page],
+    emailDelivery: null,
   },
 });

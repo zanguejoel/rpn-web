@@ -112,6 +112,8 @@ export interface ParticipantDto {
   declaredAt: string | null;
   recordedManually: boolean;
   rejectionReason: string | null;
+  /** Last reminder of any kind (automatic or "Relancer") sent for this case. */
+  lastReminderAt: string | null;
 }
 
 export interface ParticipantsResponse {
@@ -129,7 +131,8 @@ export type AuditAction =
   | 'CONTRIBUTION_VALIDATED'
   | 'CONTRIBUTION_REJECTED'
   | 'PAYMENT_RECORDED'
-  | 'SETTINGS_UPDATED';
+  | 'SETTINGS_UPDATED'
+  | 'REMINDERS_SENT';
 
 export interface AuditLogDto {
   id: string;
@@ -153,3 +156,56 @@ export interface PresignedUpload {
 }
 
 export type CaseListFilter = 'all' | 'active' | 'urgent' | 'closed';
+
+/** Outcome of "Relancer". throttled: reminded under 24 h ago; notLate: already paid or awaiting validation. */
+export interface RemindResult {
+  sent: number;
+  throttled: number;
+  notLate: number;
+}
+
+export type InvitationStatus = 'PENDING' | 'USED' | 'EXPIRED' | 'REVOKED';
+
+export interface InvitationDto {
+  id: string;
+  email: string;
+  role: Role;
+  status: InvitationStatus;
+  createdAt: string;
+  expiresAt: string;
+  invitedByName: string | null;
+  /** Only on create and resend: the link is a credential, so listings never carry it. */
+  inviteUrl: string | null;
+}
+
+/** Public read of an invitation link, before the invitee has an account. */
+export interface InvitationPreview {
+  email: string;
+  associationName: string;
+  role: Role;
+  usable: boolean;
+  status: InvitationStatus;
+}
+
+export type EmailKind =
+  | 'CASE_ANNOUNCEMENT'
+  | 'DEADLINE_REMINDER'
+  | 'MANUAL_REMINDER'
+  | 'PROOF_REJECTED'
+  | 'INVITATION'
+  | 'PASSWORD_RESET';
+
+export type EmailStatus = 'PENDING' | 'SENT' | 'FAILED';
+
+export interface EmailDto {
+  id: string;
+  createdAt: string;
+  kind: EmailKind;
+  toEmail: string;
+  subject: string;
+  body: string;
+  status: EmailStatus;
+  attempts: number;
+  lastError: string | null;
+  sentAt: string | null;
+}

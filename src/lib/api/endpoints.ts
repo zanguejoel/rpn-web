@@ -3,6 +3,11 @@ import type {
   AuditLogDto,
   ParticipantsResponse,
   SettingsDto,
+  EmailDto,
+  InvitationDto,
+  InvitationPreview,
+  RemindResult,
+  Role,
   CaseDetailDto,
   ContributionMethod,
   PresignedUpload,
@@ -33,6 +38,10 @@ export const authApi = {
   register: (inviteToken: string, fullName: string, password: string) =>
     api.post<SessionResponse>('/auth/session/register', { inviteToken, fullName, password }),
   logout: () => api.delete<void>('/auth/session'),
+  invitation: (token: string) => api.get<InvitationPreview>(`/auth/invitations/${encodeURIComponent(token)}`),
+  /** Always 202, whether or not the address has an account: the answer must not reveal who is a member. */
+  forgotPassword: (email: string) => api.post<void>('/auth/password/forgot', { email }),
+  resetPassword: (token: string, password: string) => api.post<void>('/auth/password/reset', { token, password }),
 };
 
 export const meApi = {
@@ -76,6 +85,15 @@ export const adminApi = {
   settings: () => api.get<SettingsDto>('/admin/settings'),
   updateSettings: (paymentInstructions: string) =>
     api.patch<SettingsDto>('/admin/settings', { paymentInstructions }),
+  /** memberIds omitted: every late participant. */
+  remind: (caseId: string, memberIds?: string[]) =>
+    api.post<RemindResult>(`/cases/${caseId}/reminders`, memberIds ? { memberIds } : {}),
+  invitations: () => api.get<InvitationDto[]>('/admin/invitations'),
+  invite: (email: string, role: Role) => api.post<InvitationDto>('/admin/invitations', { email, role }),
+  resendInvitation: (id: string) => api.post<InvitationDto>(`/admin/invitations/${id}/resend`),
+  revokeInvitation: (id: string) => api.delete<InvitationDto>(`/admin/invitations/${id}`),
+  emails: (page = 0, size = 30) => api.get<PageResponse<EmailDto>>(`/admin/emails${query({ page, size })}`),
+  emailDelivery: () => api.get<{ realDelivery: boolean }>('/admin/emails/delivery'),
   proofUrl: (contributionId: string) =>
     api.get<{ url: string }>(`/contributions/${contributionId}/proof`),
 };
